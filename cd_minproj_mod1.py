@@ -1,7 +1,3 @@
-# A grammar for chemical equations like "H2O", "CH3COOH" and "H2SO4"
-# Uses David Beazley's PLY parser.
-# Implements two functions: count the total number of atoms in the equation and
-#   count the number of times each element occurs in the equation.
 import sys
 import ply.lex as lex
 import ply.yacc as yacc
