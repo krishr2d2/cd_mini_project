@@ -61,20 +61,23 @@ t_ignore_COMMENT = r'(/\#(.|\n)*?\#/)|(//.*)'
 lex.lex()
 
 ############## testing the lex tokenizing ############ 
-#try : 
-#	ply_input = open(str(sys.argv[1]),'r').read()
-#	lex.input(ply_input)
-#	for tok in iter(lex.token, None):
-#		print repr(tok)
-	#yacc.parse(ply_input)
-#except IOError:
-#	print 'File not found...'
+# try : 
+	# ply_input = open(str(sys.argv[1]),'r').read()
+	# lex.input(ply_input)
+	# for tok in iter(lex.token, None):
+		# print repr(tok)
+	# #yacc.parse(ply_input)
+# except IOError:
+	# print 'File not found...'
 ####################End of Tokenization...###############################
 ####################Implementing Parsing...##############################
 #root  = tk.Tk()
 #root.title('Algovizu_v1')
 #root.geometry("900x500")
 
+# dictionary of names
+ids = { }
+	
 def p_statement(p) :
 	'''
 	statement : expression
@@ -84,27 +87,42 @@ def p_statement(p) :
 	
 def p_expression(p):
 	'''
-	expression : TEXT LPAR text_param RPAR SEMICOLON expression
+	expression 	: TEXT LPAR text_param RPAR SEMICOLON expression
 				| RECT LPAR rect_param RPAR SEMICOLON expression
+				| id_assign expression
 				| empty
 	'''
 	if len(p) > 4 :
 		p[0] = p[3]
-	
+
+def p_num_or_id(p):
+	'''
+	id_or_num	:	NUMBER
+				|	ID
+	'''
+	if type(p[1]) == int :
+		p[0] = p[1]
+	else :
+		try:
+			p[0] = ids[p[1]]
+		except LookupError:
+			print("Undefined id '%s'" % p[1])
+			p[0] = 0
+		
 def p_rect_statement(p) :
 	'''
-	rect_param : NUMBER COMMA NUMBER COMMA NUMBER COMMA NUMBER COMMA STRING
+	rect_param : id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA STRING
 	'''
 	print 'Rectangle with : ',p[1],p[3],p[5],p[7],p[9]
-	p[0] = 'rectangle printed'
+	p[0] = 'true2'
 	print 'RECT PRINTED...'
 	
 def p_text_param(p):
 	'''
-	text_param : NUMBER COMMA NUMBER COMMA STRING COMMA STRING
+	text_param : id_or_num COMMA id_or_num COMMA STRING COMMA STRING
 	'''
 	print 'Text with : ', p[1],p[3],p[5],p[7]
-	p[0] = 'text printed'
+	p[0] = 'true1'
 	print 'TEXT PRINTED...'
 	
 def p_empty(p):
@@ -112,7 +130,13 @@ def p_empty(p):
 	empty : 
 	'''
 	pass
-	
+
+
+def p_id_assign(p):
+    'id_assign : ID EQUAL NUMBER SEMICOLON'
+    ids[p[1]] = p[3]
+    print p[1], p[2], p[3]
+
 def p_error(p):
 	print "Syntax error in input!"
 
