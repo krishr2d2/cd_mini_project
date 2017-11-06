@@ -1,8 +1,10 @@
-text(10,10,'Hello master', 'black');
-rect(10,10,20,20,'gray');
-a=12;
-rect(a,20,20,20,'gray');
-text(10,10,'Hello master 1', 'black');
+a=21;
+b='black';
+r='red';
+g='gray';
+text(10,10,'Hello master', b);
+rect(10,10,20,20,g);
+text(10,10,'Hello master 1', b);
 /# This is a comment....
 and the best thing is it's working... #/
 rect(10,30,20,20,'gray');
@@ -15,3 +17,4 @@ rect(10,40,20,20,'gray'); // Hello there...
 text(10,10,'Hello master 2', 'black');
 //How is she...
 text(10,10,'Hello master 3', 'black');
+rect(a,20,a,20,'gray');

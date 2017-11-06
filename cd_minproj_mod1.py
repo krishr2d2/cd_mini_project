@@ -26,7 +26,7 @@ def t_NUMBER(t):
 
 def t_STRING(t):
     r"'([^\\']+|\\'|\\\\)*'"  # I think this is right ...
-    t.value=t.value[1:-1].decode("string-escape") # .swapcase() # for fun
+    t.value=t.value.decode("string-escape") # .swapcase() # for fun
     return t
 
 def t_newline(t):
@@ -61,14 +61,14 @@ t_ignore_COMMENT = r'(/\#(.|\n)*?\#/)|(//.*)'
 lex.lex()
 
 ############## testing the lex tokenizing ############ 
-# try : 
-	# ply_input = open(str(sys.argv[1]),'r').read()
-	# lex.input(ply_input)
-	# for tok in iter(lex.token, None):
-		# print repr(tok)
+try : 
+	ply_input = open(str(sys.argv[1]),'r').read()
+	lex.input(ply_input)
+	for tok in iter(lex.token, None):
+		print repr(tok)
 	# #yacc.parse(ply_input)
-# except IOError:
-	# print 'File not found...'
+except IOError:
+	print 'File not found...'
 ####################End of Tokenization...###############################
 ####################Implementing Parsing...##############################
 #root  = tk.Tk()
@@ -104,14 +104,26 @@ def p_num_or_id(p):
 		p[0] = p[1]
 	else :
 		try:
+			assert type(ids[p[1]]) == int
 			p[0] = ids[p[1]]
 		except LookupError:
 			print("Undefined id '%s'" % p[1])
-			p[0] = 0
-		
+		except AssertionError:
+			print 'Expected an integer but got something else...!!'
+			
+def p_string_or_id(p):
+	'''
+	id_or_string	:	STRING
+					|	ID
+	'''
+	try : 
+		p[0] = ids[p[1]]
+	except LookupError:
+		p[0] = p[1]
+			
 def p_rect_statement(p) :
 	'''
-	rect_param : id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA STRING
+	rect_param : id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_string
 	'''
 	print 'Rectangle with : ',p[1],p[3],p[5],p[7],p[9]
 	p[0] = 'true2'
@@ -119,7 +131,7 @@ def p_rect_statement(p) :
 	
 def p_text_param(p):
 	'''
-	text_param : id_or_num COMMA id_or_num COMMA STRING COMMA STRING
+	text_param : id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_string
 	'''
 	print 'Text with : ', p[1],p[3],p[5],p[7]
 	p[0] = 'true1'
@@ -133,7 +145,10 @@ def p_empty(p):
 
 
 def p_id_assign(p):
-    'id_assign : ID EQUAL NUMBER SEMICOLON'
+    '''
+	id_assign : ID EQUAL NUMBER SEMICOLON
+			  | ID EQUAL STRING SEMICOLON	
+	'''
     ids[p[1]] = p[3]
     print p[1], p[2], p[3]
 
