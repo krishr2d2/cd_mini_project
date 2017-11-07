@@ -10,6 +10,8 @@ tokens = (
 	'EQUAL',
 	'LPAR',
 	'RPAR',
+	'LSQRBRC',
+	'RSQRBRC',
 	'COMMA',
 	'SEMICOLON'
 )
@@ -18,6 +20,8 @@ t_RPAR = r'\)'
 t_COMMA = r','
 t_SEMICOLON = r';'
 t_EQUAL = r'='
+t_LSQRBRC = r'\['
+t_RSQRBRC = r'\]'
 
 def t_NUMBER(t):
 	r'\d+'
@@ -61,14 +65,14 @@ t_ignore_COMMENT = r'(/\#(.|\n)*?\#/)|(//.*)'
 lex.lex()
 
 ############## testing the lex tokenizing ############ 
-try : 
-	ply_input = open(str(sys.argv[1]),'r').read()
-	lex.input(ply_input)
-	for tok in iter(lex.token, None):
-		print repr(tok)
+#try : 
+#	ply_input = open(str(sys.argv[1]),'r').read()
+#	lex.input(ply_input)
+#	for tok in iter(lex.token, None):
+#		print repr(tok)
 	# #yacc.parse(ply_input)
-except IOError:
-	print 'File not found...'
+#except IOError:
+#	print 'File not found...'
 ####################End of Tokenization...###############################
 ####################Implementing Parsing...##############################
 #root  = tk.Tk()
@@ -87,13 +91,13 @@ def p_statement(p) :
 	
 def p_expression(p):
 	'''
-	expression 	: TEXT LPAR text_param RPAR SEMICOLON expression
-				| RECT LPAR rect_param RPAR SEMICOLON expression
-				| id_assign expression
+	expression 	: expression TEXT LPAR text_param RPAR SEMICOLON
+				| expression RECT LPAR rect_param RPAR SEMICOLON
+				| expression id_assign
 				| empty
 	'''
 	if len(p) > 4 :
-		p[0] = p[3]
+		p[0] = p[4]
 
 def p_num_or_id(p):
 	'''
@@ -120,22 +124,58 @@ def p_string_or_id(p):
 		p[0] = ids[p[1]]
 	except LookupError:
 		p[0] = p[1]
-			
+
+def p_listings(p):
+	'''
+	listing	:	LSQRBRC	list_parameters RSQRBRC
+	'''
+	p[0] = p[2]
+
+def p_list_param(p):
+	'''
+	list_parameters	:	list_parameters COMMA id_or_num 
+					|	id_or_num
+					|	empty
+	'''
+	if len(p) == 2 :
+		p[0] = [p[1]]
+	else :
+		p[0]=p[1]
+		p[0].append(p[3])
+
 def p_rect_statement(p) :
 	'''
 	rect_param : id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_string
 	'''
+	# p[1],p[3],p[5],p[7],p[9] --> x,y,width,height,color
 	print 'Rectangle with : ',p[1],p[3],p[5],p[7],p[9]
 	p[0] = 'true2'
 	print 'RECT PRINTED...'
 	
 def p_text_param(p):
 	'''
-	text_param : id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_string
+	text_param : id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_string COMMA id_or_num
 	'''
-	print 'Text with : ', p[1],p[3],p[5],p[7]
+	# p[1],p[3],p[5],p[7],p[9] --> x,y,text,colour,size
+	print 'Text with : ', p[1],p[3],p[5],p[7],p[9]
 	p[0] = 'true1'
 	print 'TEXT PRINTED...'
+
+def p_id_assign(p):
+	'''
+	id_assign	:	ID EQUAL NUMBER SEMICOLON
+				|	ID EQUAL STRING SEMICOLON
+				|	ID EQUAL listing SEMICOLON
+				|	ID EQUAL ID SEMICOLON
+	'''
+	try :
+		if p[3] in ids :
+			ids[p[1]]=ids[p[3]]
+		else :
+			ids[p[1]] = p[3]
+	except :
+		ids[p[1]] = p[3]
+	print ids
 	
 def p_empty(p):
 	'''
@@ -143,17 +183,9 @@ def p_empty(p):
 	'''
 	pass
 
-
-def p_id_assign(p):
-    '''
-	id_assign : ID EQUAL NUMBER SEMICOLON
-			  | ID EQUAL STRING SEMICOLON	
-	'''
-    ids[p[1]] = p[3]
-    print p[1], p[2], p[3]
-
+	
 def p_error(p):
-	print "Syntax error in input!"
+	print "Syntax error in input @ ",p.type
 
 #root.mainloop()
 #######################testing of the parser##########
