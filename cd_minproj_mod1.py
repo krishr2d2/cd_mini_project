@@ -7,19 +7,42 @@ tokens = (
 	'NUMBER',
 	'STRING',
 	'ID',
-	'EQUAL',
 	'LPAR',
 	'RPAR',
 	'LSQRBRC',
 	'RSQRBRC',
 	'COMMA',
-	'SEMICOLON'
+	'SEMICOLON',
+	'PLUS',
+	'MINUS',
+	'MULT',
+	'DIV',
+	'EQUAL',
+	'GRT',
+	'LST',
+	'GRE',
+	'LSE',
+	'DOUBEQ',
+	'AND',
+	'OR'
 )
+#OPERATORS
+t_PLUS = r'\+'
+t_MINUS = r'-'
+t_MULT = r'\*'
+t_DIV = r'/'
+t_EQUAL = r'='
+t_GRT = r'>'
+t_LST = r'<'
+t_GRE = r'>='
+t_LSE = r'<='
+t_DOUBEQ = r'=='
+t_AND = r'&'
+t_OR = r'\|' 
 t_LPAR = r'\('
 t_RPAR = r'\)'
 t_COMMA = r','
 t_SEMICOLON = r';'
-t_EQUAL = r'='
 t_LSQRBRC = r'\['
 t_RSQRBRC = r'\]'
 
@@ -84,7 +107,7 @@ ids = { }
 	
 def p_statement(p) :
 	'''
-	statement : expression
+	statement	:	expression
 	'''
 	if p[1]:
 		print p[1]
@@ -103,20 +126,62 @@ def p_expression(p):
 
 def p_num_or_id(p):
 	'''
-	id_or_num	:	NUMBER
-				|	ID
+	id_or_num	:	exp_eval
 	'''
-	if type(p[1]) == int :
+	if p[1] :
 		p[0] = p[1]
+
+# def p_num_exp_eval(p):
+	# '''
+	# exp_eval	:	expression2
+	# '''
+	# if (p[1]):
+		# p[0]=p[1]
+
+def p_fun_for_exp2(p):
+	'''
+	exp_eval	:	exp_eval PLUS term
+				|	exp_eval MINUS term
+				|	term
+	'''
+	if len(p) > 2 :
+		if p[2] == '+' : p[0] = p[1] + p[3]
+		elif p[2] == '-' : p[0] = p[1] - p[3]
 	else :
-		try:
-			assert type(ids[p[1]]) == int
-			p[0] = ids[p[1]]
-		except LookupError:
-			print("Undefined id '%s'" % p[1])
-		except AssertionError:
-			print 'Expected an integer but got something else...!!'
-			
+		p[0] = p[1]
+		
+def p_expression2_term(p):
+	'''
+	term	:	term MULT func
+			|	term DIV func
+			|	func
+	'''
+	if len(p) > 2 :
+		if p[2] == '*' : p[0] = p[1] * p[3]
+		elif p[2] == '/' : p[0] = p[1] / p[3]
+	else : 
+		p[0] = p[1]
+
+def p_term_func(p):
+	'''
+	func	:	LPAR exp_eval RPAR
+			|	NUMBER
+			|	ID
+	'''
+	if len(p)==4 :
+		p[0] = p[2]
+	else :
+		if type(p[1]) == int :
+			p[0] = p[1]
+		else :
+			try:
+				assert type(ids[p[1]]) == int
+				p[0] = ids[p[1]]
+			except LookupError:
+				print("Undefined id '%s'" % p[1])
+			except AssertionError:
+				print 'Expected an integer but got something else...!!'
+	
 def p_string_or_id(p):
 	'''
 	id_or_string	:	STRING
@@ -194,7 +259,7 @@ def p_bacha_statement(p):
 	
 def p_id_assign(p):
 	'''
-	id_assign	:	ID EQUAL NUMBER SEMICOLON
+	id_assign	:	ID EQUAL id_or_num SEMICOLON
 				|	ID EQUAL STRING SEMICOLON
 				|	ID EQUAL listing SEMICOLON
 				|	ID EQUAL ID SEMICOLON

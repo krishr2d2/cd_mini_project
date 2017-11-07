@@ -1,19 +1,25 @@
 x1=21;
-y1 = 21;
-x2 = 22;
+x2 = x1;
 y2 = 22;
-a=22;
+a= 3 * 2 + 8 / 2;
 b='black';
 r='red';
 g='gray';
-text(10,10,'Hello master', b,13);
+g2=g;
+l1 = [1,2,3];
+l2 = l1;
+
+text(a,10,'Hello master', b,13);
 rect(10,10,20,20,g);
 text(10,10,'Hello master 1', b,13);
+bacha(x1,x2,12,13,l2,10,1,g2);
+
 /# This is a comment....
 and the best thing is it's working... #/
-rect(10,30,20,20,'gray');
+
+/#rect(10,30,20,20,'gray');
 bacha(x1, y1, x2, y2, [1,2,3], 10, 1, 'black');
 text(10,10,'Hello master 2', 'black',10);
 rect(a,20,a,20,'gray');
 text(10,10,'Hello master 3', 'black',13);
-line(x1, y1, x2, y2, 'black', 1);
+line(x1, y1, x2, y2, 'black', 1);#/
