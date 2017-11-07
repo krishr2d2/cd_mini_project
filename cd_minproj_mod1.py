@@ -93,6 +93,8 @@ def p_expression(p):
 	'''
 	expression 	: expression TEXT LPAR text_param RPAR SEMICOLON
 				| expression RECT LPAR rect_param RPAR SEMICOLON
+				| expression LINE LPAR line_param RPAR SEMICOLON
+				| expression BARCHART LPAR bacha_param RPAR SEMICOLON
 				| expression id_assign
 				| empty
 	'''
@@ -124,6 +126,19 @@ def p_string_or_id(p):
 		p[0] = ids[p[1]]
 	except LookupError:
 		p[0] = p[1]
+
+def p_list_or_id(p):
+	'''
+	id_or_list	:	listing
+				|	ID
+	'''
+	if type(p[1]) == list :
+		p[0] = p[1]
+	else:
+		try :
+			p[0] = ids[p[1]]
+		except :
+			print "Error in (list_or_id) : id not found"
 
 def p_listings(p):
 	'''
@@ -161,6 +176,22 @@ def p_text_param(p):
 	p[0] = 'true1'
 	print 'TEXT PRINTED...'
 
+def p_line_statement(p):
+	'''
+	line_param	:	id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_num
+	'''
+	print 'Line with : ',p[1],p[3],p[5],p[7],p[9],p[11]
+	p[0] = 'true3'
+	print 'LINE PRINTED...'
+
+def p_bacha_statement(p):
+	'''
+	bacha_param	:	id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_list COMMA id_or_num COMMA id_or_num COMMA id_or_string
+	'''
+	print 'Barchart with : ', p[1],p[3],p[5],p[7],p[9],p[11],p[13],p[15]
+	p[0] = 'true4'
+	print 'BARCHART PRINTED...'
+	
 def p_id_assign(p):
 	'''
 	id_assign	:	ID EQUAL NUMBER SEMICOLON
@@ -175,7 +206,7 @@ def p_id_assign(p):
 			ids[p[1]] = p[3]
 	except :
 		ids[p[1]] = p[3]
-	print ids
+	#print ids
 	
 def p_empty(p):
 	'''

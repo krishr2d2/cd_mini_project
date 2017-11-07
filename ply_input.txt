@@ -1,4 +1,7 @@
-a=21;
+x1=21;
+y1 = 21;
+x2 = 22;
+y2 = 22;
 a=22;
 b='black';
 r='red';
@@ -9,13 +12,8 @@ text(10,10,'Hello master 1', b,13);
 /# This is a comment....
 and the best thing is it's working... #/
 rect(10,30,20,20,'gray');
-/#
-Hello master KC, you've missed a call
-from ur girlfriend a while ago. 
-Shall I call her now?
-#/ 
-rect(10,40,20,20,'gray'); // Hello there...
+bacha(x1, y1, x2, y2, [1,2,3], 10, 1, 'black');
 text(10,10,'Hello master 2', 'black',10);
-//How is she...
 rect(a,20,a,20,'gray');
 text(10,10,'Hello master 3', 'black',13);
+line(x1, y1, x2, y2, 'black', 1);
