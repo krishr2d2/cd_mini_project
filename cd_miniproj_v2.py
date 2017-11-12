@@ -10,6 +10,8 @@ class Mylexerparser(object):
 	'RPAR',
 	'LSQRBRC',
 	'RSQRBRC',
+	'LCURL',
+	'RCURL',
 	'COMMA',
 	'SEMICOLON',
 	'PLUS',
@@ -22,6 +24,7 @@ class Mylexerparser(object):
 	'GRE',
 	'LSE',
 	'DOUBEQ',
+	'NOTEQ',
 	'AND',
 	'OR'
 	)
@@ -36,6 +39,7 @@ class Mylexerparser(object):
 	t_GRE = r'>='
 	t_LSE = r'<='
 	t_DOUBEQ = r'=='
+	t_NOTEQ = r'!='
 	t_AND = r'&'
 	t_OR = r'\|' 
 	t_LPAR = r'\('
@@ -44,7 +48,9 @@ class Mylexerparser(object):
 	t_SEMICOLON = r';'
 	t_LSQRBRC = r'\['
 	t_RSQRBRC = r'\]'
-
+	t_LCURL = r'\{'
+	t_RCURL = r'\}'
+	
 	def t_NUMBER(self,t):
 		r'\d+'
 		t.value = int(t.value)
@@ -71,7 +77,6 @@ class Mylexerparser(object):
 		'bacha' : 'BARCHART',
 		'if' : 'IF',
 		'else' : 'ELSE',
-		'then' : 'THEN',
 		'while' : 'WHILE'
 	}
 
@@ -98,6 +103,16 @@ class Mylexerparser(object):
 	
 	ids = { }
 	
+	precedence = (
+    ('nonassoc','IF'),
+    ('nonassoc','ELSE'),
+    ('nonassoc','EQUAL'),
+    ('nonassoc','AND','OR'),
+    ('nonassoc','DOUBEQ','NOTEQ','LSE','LST','GRT','GRE'),
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'DIV','MULT')
+	)
+	
 	def send_params(self,k={}):
 		self.ids = dict(k)
 	
@@ -110,22 +125,43 @@ class Mylexerparser(object):
 	
 	def p_expression(self,p):
 		'''
-		expression 	: expression TEXT LPAR text_param RPAR SEMICOLON
-					| expression RECT LPAR rect_param RPAR SEMICOLON
-					| expression LINE LPAR line_param RPAR SEMICOLON
-					| expression BARCHART LPAR bacha_param RPAR SEMICOLON
-					| expression id_assign
-					| empty
+		expression	:	expression TEXT LPAR text_param RPAR SEMICOLON
+					|	expression RECT LPAR rect_param RPAR SEMICOLON
+					|	expression LINE LPAR line_param RPAR SEMICOLON
+					|	expression BARCHART LPAR bacha_param RPAR SEMICOLON
+					|	expression id_assign
+					|	expression IF LPAR boolean_exp RPAR LCURL expression RCURL else_term
+					|	empty
 		'''
 		if len(p) > 4 :
-			p[0] = p[4]
+			if p[2] == 'if' and p[4] == True :
+				if p[1] :
+					p[0] = p[1]
+				else :
+					p[0] = []
+				p[0] = p[0] + p[7]
+			
+			elif p[2] == 'if' and p[4] == False :
+				if p[1] : 
+					p[0] = p[1]
+				else :
+					p[0] = []
+				p[0] = p[0] + p[9]
+				
+			else :
+				if p[1] :
+					p[1].append(p[4])
+					p[0] = list(p[1])
+				else :
+					p[0] = [p[4]]
+			#p[0] = p[4]
 
 	def p_num_or_id(self,p):
 		'''
 		id_or_num	:	exp_eval
 		'''
-		if p[1] :
-			p[0] = p[1]
+		#if p[1] :
+		p[0] = p[1]
 
 	# def p_num_exp_eval(p):
 		# '''
@@ -184,9 +220,16 @@ class Mylexerparser(object):
 						|	ID
 		'''
 		try : 
-			p[0] = self.ids[p[1]]
-		except LookupError:
+			assert p[1][0] == "'"
 			p[0] = p[1]
+		except AssertionError:
+			try :
+				if type(self.ids[p[1]]) == str :
+					p[0] = self.ids[p[1]]
+				else :
+					print 'Expected a string but got %s' % type(self.ids[p[1]])
+			except LookupError :
+				print 'Undefined element %s' % p[1]
 
 	def p_list_or_id(self,p):
 		'''
@@ -224,34 +267,34 @@ class Mylexerparser(object):
 		rect_param : id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_string
 		'''
 		# p[1],p[3],p[5],p[7],p[9] --> x,y,width,height,color
-		print 'Rectangle with : ',p[1],p[3],p[5],p[7],p[9]
-		p[0] = 'true2'
-		print 'RECT PRINTED...'
+		#print 'Rectangle with : ',p[1],p[3],p[5],p[7],p[9]
+		p[0] = ['rect',p[1],p[3],p[5],p[7],p[9]]
+		#print 'RECT PRINTED...'
 	
 	def p_text_param(self,p):
 		'''
 		text_param : id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_string COMMA id_or_num
 		'''
 		# p[1],p[3],p[5],p[7],p[9] --> x,y,text,colour,size
-		print 'Text with : ', p[1],p[3],p[5],p[7],p[9]
-		p[0] = 'true1'
-		print 'TEXT PRINTED...'
+		#print 'Text with : ', p[1],p[3],p[5],p[7],p[9]
+		p[0] = ['text',p[1],p[3],p[5],p[7],p[9]]
+		#print 'TEXT PRINTED...'
 
 	def p_line_statement(self,p):
 		'''
 		line_param	:	id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_string COMMA id_or_num
 		'''
-		print 'Line with : ',p[1],p[3],p[5],p[7],p[9],p[11]
-		p[0] = 'true3'
-		print 'LINE PRINTED...'
+		#print 'Line with : ',p[1],p[3],p[5],p[7],p[9],p[11]
+		p[0] = ['line',p[1],p[3],p[5],p[7],p[9],p[11]]
+		#print 'LINE PRINTED...'
 
 	def p_bacha_statement(self,p):
 		'''
-		bacha_param	:	id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_list COMMA id_or_num COMMA id_or_num COMMA id_or_string
+		bacha_param	:	id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_num COMMA id_or_list COMMA id_or_list COMMA id_or_num COMMA id_or_string
 		'''
-		print 'Barchart with : ', p[1],p[3],p[5],p[7],p[9],p[11],p[13],p[15]
-		p[0] = 'true4'
-		print 'BARCHART PRINTED...'
+		#print 'Barchart with : ', p[1],p[3],p[5],p[7],p[9],p[11],p[13],p[15]
+		p[0] = ['Barchart',p[1],p[3],p[5],p[7],p[9],p[11],p[13],p[15]]
+		#print 'BARCHART PRINTED...'
 	
 	def p_id_assign(self,p):
 		'''
@@ -269,6 +312,51 @@ class Mylexerparser(object):
 			self.ids[p[1]] = p[3]
 		#print ids
 	
+	def p_boolean_func(self,p):
+		'''
+		boolean_exp	:	bool_term AND boolean_exp
+					|	bool_term OR boolean_exp
+					|	boolean_exp AND boolean_exp
+					|	boolean_exp OR boolean_exp
+					|	id_or_num GRT id_or_num
+					|	id_or_num GRE id_or_num
+					|	id_or_num LST id_or_num
+					|	id_or_num LSE id_or_num
+					|	id_or_num DOUBEQ id_or_num
+					|	id_or_num NOTEQ id_or_num
+		'''
+		if p[2] == '&' : p[0] = p[1] and p[3]
+		elif p[2] == '|': p[0] = p[1] or p[3]
+		elif p[2] == '>': p[0] = p[1] > p[3]
+		elif p[2] == '<': p[0] = p[1] < p[3]
+		elif p[2] == '>=': p[0] = p[1] >= p[3]
+		elif p[2] == '<=': p[0] = p[1] <= p[3]
+		elif p[2] == '==': p[0] = p[1] == p[3]
+		elif p[2] == '!=': p[0] = p[1] != p[3]
+		elif p[1] == '\(' : p[0] = p[2]
+		else :	print 'Unknown Production encountered...'
+	
+	def p_boolean_term(self, p):
+		'''
+		bool_term	:	LPAR boolean_exp RPAR
+					|	empty
+		'''
+		if len(p) > 2 :
+			p[0] = p[2]
+		else :
+			p[0] = True
+	
+	def p_else_statement(self,p):
+		'''
+		else_term	:	ELSE LCURL expression RCURL
+					|	empty
+		'''
+		#pass
+		if len(p) > 2 :
+			p[0] = p[3]
+		else :
+			p[0] = []
+	
 	def p_empty(self, p):
 		'''
 		empty : 
@@ -276,7 +364,7 @@ class Mylexerparser(object):
 		pass
 
 	def p_error(self,p):
-		print "Syntax error in input @ ",p.type
+		print "Syntax error in input @ %s = %s" % (p.type,p.value)
 	
 	def build_parser(self,**kwargs):
 		self.build_lexer()

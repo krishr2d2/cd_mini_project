@@ -11,15 +11,15 @@ def bubbleSort(L):
             if L[j] > L[j+1]:
 				L[j],L[j+1] = L[j+1],L[j]
 				swaps +=1
-				
-				k={'data':data,'i':i,'j':j}
+				print i,j
+				k={'data':L,'i':i,'j':j}
 				m.driver(k,ply_input)# to display the updated list...
  
 from random import sample
 data = sample(range(10), 10)
-print data
+#print data
 bubbleSort(data)
-print data
-#m.test_parser(ply_input)
+#print data
+#m.test_lexer(ply_input)
 
 
